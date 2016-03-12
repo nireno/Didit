@@ -27,6 +27,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.niren.slice.ItemListActivity" />
         </activity>
+
+        <provider
+            android:name=".data.Provider"
+            android:authorities="com.example.niren.slice"
+            android:exported="false"
+            android:syncable="true" />
     </application>
 
 </manifest>

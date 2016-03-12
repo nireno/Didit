@@ -1,5 +1,6 @@
 package com.example.niren.slice;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,8 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.niren.slice.data.Contract;
+import com.example.niren.slice.data.Contract.TaskEntry;
 import com.example.niren.slice.dummy.DummyContent;
 
+import java.util.GregorianCalendar;
 import java.util.List;
 
 /**
@@ -63,6 +67,13 @@ public class ItemListActivity extends AppCompatActivity {
             // activity should be in two-pane mode.
             mTwoPane = true;
         }
+
+        ContentValues cvs = new ContentValues();
+        GregorianCalendar cal = new GregorianCalendar(2016, 01, 01, 14, 30);
+        cvs.put(TaskEntry.COL_DATE_START, cal.getTimeInMillis());
+        cal.add(GregorianCalendar.MINUTE, 30);
+        cvs.put(TaskEntry.COL_DATE_END, cal.getTimeInMillis());
+        getContentResolver().insert(Contract.TaskEntry.BASE_URI, cvs);
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
