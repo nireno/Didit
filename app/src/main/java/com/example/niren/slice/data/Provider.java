@@ -41,7 +41,8 @@ public class Provider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        return db.query(TaskEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     @Nullable

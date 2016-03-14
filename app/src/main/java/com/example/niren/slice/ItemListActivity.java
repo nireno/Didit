@@ -1,13 +1,16 @@
 package com.example.niren.slice;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -17,10 +20,8 @@ import android.widget.TextView;
 
 import com.example.niren.slice.data.Contract;
 import com.example.niren.slice.data.Contract.TaskEntry;
-import com.example.niren.slice.dummy.DummyContent;
 
 import java.util.GregorianCalendar;
-import java.util.List;
 
 /**
  * An activity representing a list of Items. This activity
@@ -30,13 +31,20 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity {
+public class ItemListActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final int TASK_LOADER = 0;
+    private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END};
+    private final int COL_IDX_ID = 0;
+    private final int COL_IDX_DATE_START = 1;
+    private final int COL_IDX_DATE_END = 2;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
+    private SimpleItemRecyclerViewAdapter mAdapter = new SimpleItemRecyclerViewAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +64,12 @@ public class ItemListActivity extends AppCompatActivity {
             }
         });
 
-        View recyclerView = findViewById(R.id.item_list);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.item_list);
         assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(llm);
+        recyclerView.setAdapter(mAdapter);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -74,19 +85,39 @@ public class ItemListActivity extends AppCompatActivity {
         cal.add(GregorianCalendar.MINUTE, 30);
         cvs.put(TaskEntry.COL_DATE_END, cal.getTimeInMillis());
         getContentResolver().insert(Contract.TaskEntry.BASE_URI, cvs);
+
+        getLoaderManager().initLoader(TASK_LOADER, null, this);
+
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        GregorianCalendar cal = new GregorianCalendar(2016, 01, 01);
+        Uri uri = TaskEntry.buildTasksByDateUri(cal.getTimeInMillis());
+        return new CursorLoader(this, uri, PROJECTION, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
     }
 
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<DummyContent.DummyItem> mValues;
+        private Cursor mCursor;
 
-        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
-            mValues = items;
+        public SimpleItemRecyclerViewAdapter() {
+        }
+
+        public void swapCursor(Cursor newCursor) {
+            mCursor = newCursor;
+            notifyDataSetChanged();
         }
 
         @Override
@@ -98,42 +129,42 @@ public class ItemListActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+            mCursor.moveToPosition(position);
+            holder.mIdView.setText(Long.toString(mCursor.getLong(COL_IDX_DATE_START)));
+            holder.mContentView.setText(Long.toString(mCursor.getLong(COL_IDX_DATE_END)));
 
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        ItemDetailFragment fragment = new ItemDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.item_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, ItemDetailActivity.class);
-                        intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
-                        context.startActivity(intent);
-                    }
-                }
-            });
+//            holder.mView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (mTwoPane) {
+//                        Bundle arguments = new Bundle();
+//                        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+//                        ItemDetailFragment fragment = new ItemDetailFragment();
+//                        fragment.setArguments(arguments);
+//                        getSupportFragmentManager().beginTransaction()
+//                                .replace(R.id.item_detail_container, fragment)
+//                                .commit();
+//                    } else {
+//                        Context context = v.getContext();
+//                        Intent intent = new Intent(context, ItemDetailActivity.class);
+//                        intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
+//
+//                        context.startActivity(intent);
+//                    }
+//                }
+//            });
         }
 
         @Override
         public int getItemCount() {
-            return mValues.size();
+            if (null == mCursor) return 0;
+            return mCursor.getCount();
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             public final View mView;
             public final TextView mIdView;
             public final TextView mContentView;
-            public DummyContent.DummyItem mItem;
 
             public ViewHolder(View view) {
                 super(view);
