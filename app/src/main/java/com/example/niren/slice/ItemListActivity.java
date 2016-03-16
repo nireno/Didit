@@ -1,27 +1,19 @@
 package com.example.niren.slice;
 
-import android.app.LoaderManager;
 import android.content.ContentValues;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.example.niren.slice.data.Contract;
+import com.alamkanak.weekview.MonthLoader;
+import com.alamkanak.weekview.WeekView;
+import com.alamkanak.weekview.WeekViewEvent;
 import com.example.niren.slice.data.Contract.TaskEntry;
 
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * An activity representing a list of Items. This activity
@@ -31,10 +23,8 @@ import java.util.GregorianCalendar;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+public class ItemListActivity extends AppCompatActivity {
 
-    private static final int TASK_LOADER = 0;
     private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END};
     private final int COL_IDX_ID = 0;
     private final int COL_IDX_DATE_START = 1;
@@ -44,7 +34,7 @@ public class ItemListActivity extends AppCompatActivity implements
      * device.
      */
     private boolean mTwoPane;
-    private SimpleItemRecyclerViewAdapter mAdapter = new SimpleItemRecyclerViewAdapter();
+    private WeekView mWeekView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,21 +45,7 @@ public class ItemListActivity extends AppCompatActivity implements
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.item_list);
-        assert recyclerView != null;
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(llm);
-        recyclerView.setAdapter(mAdapter);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -79,104 +55,50 @@ public class ItemListActivity extends AppCompatActivity implements
             mTwoPane = true;
         }
 
-        ContentValues cvs = new ContentValues();
-        GregorianCalendar cal = new GregorianCalendar(2016, 01, 01, 14, 30);
-        cvs.put(TaskEntry.COL_DATE_START, cal.getTimeInMillis());
-        cal.add(GregorianCalendar.MINUTE, 30);
-        cvs.put(TaskEntry.COL_DATE_END, cal.getTimeInMillis());
-        getContentResolver().insert(Contract.TaskEntry.BASE_URI, cvs);
+        mWeekView = (WeekView) findViewById(R.id.weekView);
 
-        getLoaderManager().initLoader(TASK_LOADER, null, this);
-
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        GregorianCalendar cal = new GregorianCalendar(2016, 01, 01);
-        Uri uri = TaskEntry.buildTasksByDateUri(cal.getTimeInMillis());
-        return new CursorLoader(this, uri, PROJECTION, null, null, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapCursor(null);
-    }
-
-    public class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
-        private Cursor mCursor;
-
-        public SimpleItemRecyclerViewAdapter() {
-        }
-
-        public void swapCursor(Cursor newCursor) {
-            mCursor = newCursor;
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            mCursor.moveToPosition(position);
-            holder.mIdView.setText(Long.toString(mCursor.getLong(COL_IDX_DATE_START)));
-            holder.mContentView.setText(Long.toString(mCursor.getLong(COL_IDX_DATE_END)));
-
-//            holder.mView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    if (mTwoPane) {
-//                        Bundle arguments = new Bundle();
-//                        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-//                        ItemDetailFragment fragment = new ItemDetailFragment();
-//                        fragment.setArguments(arguments);
-//                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.item_detail_container, fragment)
-//                                .commit();
-//                    } else {
-//                        Context context = v.getContext();
-//                        Intent intent = new Intent(context, ItemDetailActivity.class);
-//                        intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-//
-//                        context.startActivity(intent);
-//                    }
-//                }
-//            });
-        }
-
-        @Override
-        public int getItemCount() {
-            if (null == mCursor) return 0;
-            return mCursor.getCount();
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final TextView mIdView;
-            public final TextView mContentView;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mIdView = (TextView) view.findViewById(R.id.id);
-                mContentView = (TextView) view.findViewById(R.id.content);
-            }
-
+        MonthLoader.MonthChangeListener monthChangeListener = new MonthLoader.MonthChangeListener() {
             @Override
-            public String toString() {
-                return super.toString() + " '" + mContentView.getText() + "'";
+            public List<WeekViewEvent> onMonthChange(int newYear, int newMonth) {
+                List<WeekViewEvent> events = new ArrayList<>();
+                GregorianCalendar cal = new GregorianCalendar(newYear, newMonth, 1);
+                GregorianCalendar cal2 = new GregorianCalendar(newYear, newMonth + 1, 1);
+                String selection = TaskEntry.COL_DATE_START + ">= ? AND " + TaskEntry.COL_DATE_END + " < ?";
+                String[] args = new String[]{Long.toString(cal.getTimeInMillis()), Long.toString(cal2.getTimeInMillis())};
+                Cursor cur = getContentResolver().query(TaskEntry.BASE_URI, PROJECTION, selection, args, null);
+                int count = 0;
+                GregorianCalendar dateStart = new GregorianCalendar();
+                GregorianCalendar dateEnd = new GregorianCalendar();
+                while (cur.moveToNext()) {
+                    dateStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
+                    dateEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
+                    String s = "the quick brown fox jumps over the lazy dog just to show off his genetic superiority";
+                    WeekViewEvent e = new WeekViewEvent(++count, s, dateStart, dateEnd);
+                    events.add(e);
+                }
+
+                if (newMonth == 3) {
+                    events.add(new WeekViewEvent(++count, "testing 123", 2016, 3, 16, 0, 0, 2016, 3, 16, 1, 0));
+                }
+                return events;
             }
-        }
+        };
+
+        // Set an action when any event is clicked.
+//        mWeekView.setOnEventClickListener(mEventClickListener);
+
+        // The week view has infinite scrolling horizontally. We have to provide the events of a
+        // month every time the month changes on the week view.
+        mWeekView.setMonthChangeListener(monthChangeListener);
+
+        // Set long press listener for events.
+//        mWeekView.setEventLongPressListener(mEventLongPressListener);
+
+        ContentValues cvs = new ContentValues();
+        GregorianCalendar cal = new GregorianCalendar();
+        cvs.put(TaskEntry.COL_DATE_START, cal.getTimeInMillis());
+        cal.add(GregorianCalendar.HOUR_OF_DAY, 1);
+        cvs.put(TaskEntry.COL_DATE_END, cal.getTimeInMillis());
+//        getContentResolver().insert(Contract.TaskEntry.BASE_URI, cvs);
     }
 }

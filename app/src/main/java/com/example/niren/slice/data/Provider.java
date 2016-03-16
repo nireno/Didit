@@ -21,6 +21,7 @@ public class Provider extends ContentProvider {
     public static final int TASK = 1;
     public static final int TASKS_BY_DAY = 2;
     public static final int TASK_BY_ID = 3;
+    public static final int TASKS_WITH_QUERY = 4;
 
     private DbHelper mDbHelper;
 
@@ -29,6 +30,7 @@ public class Provider extends ContentProvider {
         matcher.addURI(Contract.AUTHORITY, TaskEntry.PATH, TASK);
         matcher.addURI(Contract.AUTHORITY, TaskEntry.PATH + "/#", TASK_BY_ID);
         matcher.addURI(Contract.AUTHORITY, TaskEntry.PATH + "/day/#", TASKS_BY_DAY);
+        matcher.addURI(Contract.AUTHORITY, TaskEntry.PATH + "?*", TASKS_WITH_QUERY);
         return matcher;
     }
 
@@ -42,7 +44,16 @@ public class Provider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        return db.query(TaskEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor;
+        switch (getUriMatcher().match(uri)) {
+            case TASK:
+                cursor = db.query(TaskEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     @Nullable
@@ -54,6 +65,8 @@ public class Provider extends ContentProvider {
             case TASK_BY_ID:
                 return ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
             case TASKS_BY_DAY:
+                return ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
+            case TASKS_WITH_QUERY:
                 return ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
         }
         return null;
