@@ -1,7 +1,9 @@
 package com.example.niren.slice;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -35,10 +37,12 @@ public class ItemListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
     private WeekView mWeekView;
+    private ItemListActivity mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         setContentView(R.layout.activity_item_list);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -67,13 +71,15 @@ public class ItemListActivity extends AppCompatActivity {
                 String[] args = new String[]{Long.toString(cal.getTimeInMillis()), Long.toString(cal2.getTimeInMillis())};
                 Cursor cur = getContentResolver().query(TaskEntry.BASE_URI, PROJECTION, selection, args, null);
                 int count = 0;
-                GregorianCalendar dateStart = new GregorianCalendar();
-                GregorianCalendar dateEnd = new GregorianCalendar();
+                GregorianCalendar eventStart = new GregorianCalendar();
+                GregorianCalendar eventEnd = new GregorianCalendar();
+                long eventId;
                 while (cur.moveToNext()) {
-                    dateStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
-                    dateEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
+                    eventStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
+                    eventEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
+                    eventId = cur.getLong(COL_IDX_ID);
                     String s = "the quick brown fox jumps over the lazy dog just to show off his genetic superiority";
-                    WeekViewEvent e = new WeekViewEvent(++count, s, dateStart, dateEnd);
+                    WeekViewEvent e = new WeekViewEvent(eventId, s, eventStart, eventEnd);
                     events.add(e);
                 }
 
@@ -85,7 +91,25 @@ public class ItemListActivity extends AppCompatActivity {
         };
 
         // Set an action when any event is clicked.
-//        mWeekView.setOnEventClickListener(mEventClickListener);
+        mWeekView.setOnEventClickListener(new WeekView.EventClickListener() {
+            @Override
+            public void onEventClick(WeekViewEvent event, RectF eventRect) {
+                if (mTwoPane) {
+                    Bundle arguments = new Bundle();
+                    arguments.putLong(ItemDetailFragment.ARG_ITEM_ID, event.getId());
+                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    fragment.setArguments(arguments);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.item_detail_container, fragment)
+                            .commit();
+                } else {
+                    Intent intent = new Intent(mContext, ItemDetailActivity.class);
+                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, event.getId());
+
+                    mContext.startActivity(intent);
+                }
+            }
+        });
 
         // The week view has infinite scrolling horizontally. We have to provide the events of a
         // month every time the month changes on the week view.

@@ -1,5 +1,6 @@
 package com.example.niren.slice.data;
 
+import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -17,11 +18,15 @@ public class Contract {
         public static final Uri BASE_URI = Contract.BASE_URI.buildUpon().appendPath("task").build();
 
         public static Uri buildTaskByIdUri(long id) {
-            return BASE_URI.buildUpon().appendPath(Long.toString(id)).build();
+            return ContentUris.withAppendedId(BASE_URI, id);
         }
 
         public static Uri buildTasksByDateUri(long date) {
             return BASE_URI.buildUpon().appendPath("/date/" + date).build();
+        }
+
+        public static String getTaskIdFromUri(Uri uri) {
+            return uri.getPathSegments().get(1);
         }
     }
 }

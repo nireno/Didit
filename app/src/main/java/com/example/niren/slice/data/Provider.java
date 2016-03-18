@@ -49,6 +49,11 @@ public class Provider extends ContentProvider {
             case TASK:
                 cursor = db.query(TaskEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
                 break;
+            case TASK_BY_ID:
+                selection = TaskEntry._ID + " = ?";
+                selectionArgs = new String[]{TaskEntry.getTaskIdFromUri(uri)};
+                cursor = db.query(TaskEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -64,7 +69,7 @@ public class Provider extends ContentProvider {
         switch (match) {
             case TASK_BY_ID:
                 return ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
-            case TASKS_BY_DAY:
+            case TASK:
                 return ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
             case TASKS_WITH_QUERY:
                 return ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + Contract.AUTHORITY + "/" + TaskEntry.PATH;
