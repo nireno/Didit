@@ -9,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.example.niren.slice.data.Contract.TaskEntry;
@@ -27,6 +29,7 @@ public class ItemDetailFragment extends Fragment {
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
+    public static final String ARG_START_TIME = "start_time";
 
     private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END};
     private final int COL_IDX_ID = 0;
@@ -38,6 +41,11 @@ public class ItemDetailFragment extends Fragment {
      */
     private DummyContent.DummyItem mItem;
     private Cursor cursor;
+
+    private TextView mTextStartTime;
+    private TextView mTextEndTime;
+    private TextView mTextDescription;
+    private Spinner mSpinCategory;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -67,9 +75,24 @@ public class ItemDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.item_detail, container, false);
+//        TextView tv = ((TextView) rootView.findViewById(R.id.item_detail));
+        mTextStartTime = ((TextView) rootView.findViewById(R.id.start_time));
+        mTextEndTime = ((TextView) rootView.findViewById(R.id.end_time));
+        mTextDescription = ((TextView) rootView.findViewById(R.id.description));
+        mSpinCategory = (Spinner) rootView.findViewById(R.id.category);
 
-        if (cursor != null) {
-            ((TextView) rootView.findViewById(R.id.item_detail)).setText(Long.toString(cursor.getLong(COL_IDX_DATE_END)));
+        ArrayAdapter<String> a = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, new String[]{"hello", "world"});
+        mSpinCategory.setAdapter(a);
+
+        if (cursor.moveToFirst()) {
+            mTextStartTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_START)));
+            mTextEndTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_END)));
+            mTextDescription.setText("hello world");
+        } else {
+            long startTime = getActivity().getIntent().getLongExtra(ARG_START_TIME, 0);
+            mTextStartTime.setText(Long.toString(startTime));
+            mTextEndTime.setText("end time here");
+            mTextDescription.setText("description here");
         }
 
         return rootView;

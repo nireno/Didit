@@ -14,6 +14,7 @@ import com.alamkanak.weekview.WeekViewEvent;
 import com.example.niren.slice.data.Contract.TaskEntry;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -118,6 +119,25 @@ public class ItemListActivity extends AppCompatActivity {
         // Set long press listener for events.
 //        mWeekView.setEventLongPressListener(mEventLongPressListener);
 
+        mWeekView.setEmptyViewClickListener(new WeekView.EmptyViewClickListener() {
+            @Override
+            public void onEmptyViewClicked(Calendar time) {
+                if (mTwoPane) {
+                    Bundle arguments = new Bundle();
+                    arguments.putLong(ItemDetailFragment.ARG_START_TIME, time.getTimeInMillis());
+                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    fragment.setArguments(arguments);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.item_detail_container, fragment)
+                            .commit();
+                } else {
+                    Intent intent = new Intent(mContext, ItemDetailActivity.class);
+                    intent.putExtra(ItemDetailFragment.ARG_START_TIME, time.getTimeInMillis());
+
+                    mContext.startActivity(intent);
+                }
+            }
+        });
         ContentValues cvs = new ContentValues();
         GregorianCalendar cal = new GregorianCalendar();
         cvs.put(TaskEntry.COL_DATE_START, cal.getTimeInMillis());
