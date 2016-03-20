@@ -9,12 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-
-import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
-import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
-
-import java.util.Calendar;
 
 /**
  * An activity representing a single Item detail screen. This
@@ -22,9 +16,7 @@ import java.util.Calendar;
  * item details are presented side-by-side with a list of items
  * in a {@link ItemListActivity}.
  */
-public class ItemDetailActivity extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
-    private TextView mTextClickedTime;
-
+public class ItemDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,24 +77,4 @@ public class ItemDetailActivity extends AppCompatActivity implements TimePickerD
         }
         return super.onOptionsItemSelected(item);
     }
-
-    public void showTimePicker(View v) {
-        mTextClickedTime = (TextView) v;
-
-        Calendar now = Calendar.getInstance();
-
-        TimePickerDialog tpd = TimePickerDialog.newInstance(
-                this,
-                now.get(Calendar.HOUR_OF_DAY),
-                now.get(Calendar.MINUTE),
-                true
-        );
-        tpd.show(getFragmentManager(), "Datepickerdialog");
-    }
-
-    @Override
-    public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
-        mTextClickedTime.setText("" + hourOfDay + ":" + minute);
-    }
-
 }

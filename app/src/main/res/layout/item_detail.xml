@@ -1,24 +1,60 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="@dimen/activity_padding">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:labelFor="@+id/start_time"
+        android:text="Start"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
     <TextView
         android:id="@+id/start_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="showTimePicker" />
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
+        tools:text="9:30" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:labelFor="@+id/end_time"
+        android:text="End"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
     <TextView
         android:id="@+id/end_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="showTimePicker" />
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
+        tools:text="22:30" />
 
     <TextView
+        android:id="@+id/description_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:labelFor="@+id/description"
+        android:text="Description"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
+
+    <EditText
         android:id="@+id/description"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="Do some stuff for some people"
+        android:inputType="text" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
     <Spinner
         android:id="@+id/category"
