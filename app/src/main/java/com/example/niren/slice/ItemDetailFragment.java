@@ -94,7 +94,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         ArrayAdapter<String> a = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, new String[]{"hello", "world"});
         mSpinCategory.setAdapter(a);
 
-        if (cursor.moveToFirst()) {
+        if (cursor != null && cursor.moveToFirst()) {
             mTextStartTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_START)));
             mTextEndTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_END)));
             mTextDescription.setText("hello world");

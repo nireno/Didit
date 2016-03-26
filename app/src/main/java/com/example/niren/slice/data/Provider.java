@@ -81,7 +81,7 @@ public class Provider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        /* There's only one table now so no need to check for URI match */
+        /* There's only one table now so I'm assuming the URI matches */
         long id = db.insert(TaskEntry.TABLE_NAME, null, values);
         return TaskEntry.BASE_URI.buildUpon().appendPath(Long.toString(id)).build();
     }
