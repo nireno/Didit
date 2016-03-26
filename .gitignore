@@ -3,6 +3,9 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/.idea/encodings
+/.idea/gradle.xml
+/.idea/inspectionProfiles
 .DS_Store
 /build
 /captures
