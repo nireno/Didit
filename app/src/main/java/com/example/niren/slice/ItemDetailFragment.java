@@ -1,12 +1,16 @@
 package com.example.niren.slice;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -54,6 +58,9 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     private TextView mTextClickedTime;
     private Calendar mCalStartTime;
     private Calendar mCalEndTime;
+    private String mDescription;
+    private String mCategory;
+    private MenuItem mSaveAction;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -65,17 +72,42 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
+        String title = "Edit Task";
         if (getArguments().containsKey(ARG_ITEM_ID)) {
+            /* User clicked on an existing task. Get a cursor on that task id and load start/stop time etc. */
             long id = getArguments().getLong(ARG_ITEM_ID);
             Uri uri = TaskEntry.buildTaskByIdUri(id);
             cursor = getContext().getContentResolver().query(uri, PROJECTION, null, null, null);
 
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null && cursor.moveToFirst()) {
-                appBarLayout.setTitle(Long.toString(cursor.getLong(COL_IDX_ID)));
-            }
+            cursor.moveToFirst();
+            long startTimeMillis = cursor.getLong(COL_IDX_DATE_START);
+            mCalStartTime = GregorianCalendar.getInstance();
+            mCalStartTime.setTimeInMillis(startTimeMillis);
+
+            long endTimeMillis = cursor.getLong(COL_IDX_DATE_END);
+            mCalEndTime = GregorianCalendar.getInstance();
+            mCalEndTime.setTimeInMillis(endTimeMillis);
+
+        } else {
+            /* User clicked an empty cell. We expect to get a start time argument  */
+            long startTimeMillis = getArguments().getLong(ARG_START_TIME);
+            title = "New Task";
+            mCalStartTime = GregorianCalendar.getInstance();
+            mCalStartTime.setTimeInMillis(startTimeMillis);
+
+            mCalEndTime = (GregorianCalendar) mCalStartTime.clone();
+            mCalEndTime.add(Calendar.HOUR, 1);
+        }
+
+        mDescription = "TODO: CRUD for Task description";
+        mCategory = "TODO: CRUD for task category";
+
+        Activity activity = this.getActivity();
+        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+        if (appBarLayout != null) {
+            appBarLayout.setTitle(title);
         }
     }
 
@@ -94,18 +126,9 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         ArrayAdapter<String> a = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, new String[]{"hello", "world"});
         mSpinCategory.setAdapter(a);
 
-        if (cursor != null && cursor.moveToFirst()) {
-            mTextStartTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_START)));
-            mTextEndTime.setText(Long.toString(cursor.getLong(COL_IDX_DATE_END)));
-            mTextDescription.setText("hello world");
-        } else {
-            long startTime = getActivity().getIntent().getLongExtra(ARG_START_TIME, 0);
-            mCalStartTime = GregorianCalendar.getInstance();
-            mCalStartTime.setTimeInMillis(startTime);
-            mTextStartTime.setText(String.format("%1$tH:%1$tM", mCalStartTime));
-            mCalEndTime = GregorianCalendar.getInstance();
-            mTextEndTime.setText(String.format("%1$tH:%1$tM", mCalEndTime));
-        }
+        mTextStartTime.setText(String.format("%1$tH:%1$tM", mCalStartTime));
+        mTextEndTime.setText(String.format("%1$tH:%1$tM", mCalEndTime));
+        mTextDescription.setText(mDescription);
 
         return rootView;
     }
@@ -136,6 +159,46 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
-        mTextClickedTime.setText("" + hourOfDay + ":" + minute);
+        Calendar oldCal = GregorianCalendar.getInstance();
+        oldCal.setTimeInMillis(mCalStartTime.getTimeInMillis());
+        Calendar newCal = GregorianCalendar.getInstance();
+        newCal.set(oldCal.get(Calendar.YEAR), oldCal.get(Calendar.MONTH), oldCal.get(Calendar.DAY_OF_MONTH), hourOfDay, minute, second);
+
+        mTextClickedTime.setText(String.format("%1$tH:%1$tM", newCal));
+
+        if (mTextStartTime == mTextClickedTime) {
+            mCalStartTime.setTimeInMillis(newCal.getTimeInMillis());
+        } else {
+            mCalEndTime.setTimeInMillis(newCal.getTimeInMillis());
+        }
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.edit_task_menu, menu);
+        mSaveAction = menu.findItem(R.id.action_save);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mSaveAction == item) {
+            /*Is it a new task or are we editing an existing one */
+            if (cursor == null) {
+                /* then its a new task */
+                ContentValues cv = makeContentValues();
+                Uri uri = getActivity().getContentResolver().insert(TaskEntry.BASE_URI, cv);
+            }
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private ContentValues makeContentValues() {
+        ContentValues cv = new ContentValues();
+        cv.put(TaskEntry.COL_DATE_START, mCalStartTime.getTimeInMillis());
+        cv.put(TaskEntry.COL_DATE_END, mCalEndTime.getTimeInMillis());
+        return cv;
     }
 }

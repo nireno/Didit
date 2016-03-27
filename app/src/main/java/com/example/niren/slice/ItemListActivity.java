@@ -72,20 +72,21 @@ public class ItemListActivity extends AppCompatActivity {
                 String[] args = new String[]{Long.toString(cal.getTimeInMillis()), Long.toString(cal2.getTimeInMillis())};
                 Cursor cur = getContentResolver().query(TaskEntry.BASE_URI, PROJECTION, selection, args, null);
                 int count = 0;
-                GregorianCalendar eventStart = new GregorianCalendar();
-                GregorianCalendar eventEnd = new GregorianCalendar();
+                Calendar eventStart;
+                Calendar eventEnd;
                 long eventId;
-                while (cur.moveToNext()) {
-                    eventStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
-                    eventEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
-                    eventId = cur.getLong(COL_IDX_ID);
-                    String s = "the quick brown fox jumps over the lazy dog just to show off his genetic superiority";
-                    WeekViewEvent e = new WeekViewEvent(eventId, s, eventStart, eventEnd);
-                    events.add(e);
-                }
-
-                if (newMonth == 3) {
-                    events.add(new WeekViewEvent(++count, "testing 123", 2016, 3, 16, 0, 0, 2016, 3, 16, 1, 0));
+                if (cur != null) {
+                    while (cur.moveToNext()) {
+                        eventStart = GregorianCalendar.getInstance();
+                        eventEnd = GregorianCalendar.getInstance();
+                        eventStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
+                        eventEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
+                        eventId = cur.getLong(COL_IDX_ID);
+                        String s = "the quick brown fox jumps over the lazy dog just to show off his genetic superiority";
+                        WeekViewEvent e = new WeekViewEvent(eventId, s, eventStart, eventEnd);
+                        events.add(e);
+                    }
+                    cur.close();
                 }
                 return events;
             }
