@@ -14,7 +14,8 @@ public class DbHelper extends SQLiteOpenHelper {
             + Contract.TaskEntry._ID + " integer primary key autoincrement, "
             + Contract.TaskEntry.COL_DATE_START + " integer not null, "
             + Contract.TaskEntry.COL_DATE_END + " integer, "
-            + Contract.TaskEntry.COL_DESCRIPTION + " text);";
+            + Contract.TaskEntry.COL_DESCRIPTION + " text, "
+            + Contract.TaskEntry.COL_CATEGORY + " text);";
 
     public DbHelper(Context context) {
         super(context, DB_NAME, null, VERSION);

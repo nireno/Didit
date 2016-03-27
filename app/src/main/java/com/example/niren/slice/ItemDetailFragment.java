@@ -44,19 +44,27 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             TaskEntry._ID,
             TaskEntry.COL_DATE_START,
             TaskEntry.COL_DATE_END,
-            TaskEntry.COL_DESCRIPTION
+            TaskEntry.COL_DESCRIPTION,
+            TaskEntry.COL_CATEGORY
     };
     private final int COL_IDX_ID = 0;
     private final int COL_IDX_DATE_START = 1;
     private final int COL_IDX_DATE_END = 2;
     private final int COL_IDX_DESCRIPTION = 3;
-
+    private final int COL_IDX_CATEGORY = 4;
+    private final String[] mCategories = new String[]{
+            "Development",
+            "Research",
+            "SDLC",
+            "Internal Comms",
+            "External Comms",
+            "Work Related"
+    };
     /**
      * The dummy content this fragment is presenting.
      */
     private DummyContent.DummyItem mItem;
     private Cursor cursor;
-
     private TextView mTextStartTime;
     private TextView mTextEndTime;
     private TextView mTextDescription;
@@ -65,9 +73,9 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     private Calendar mCalStartTime;
     private Calendar mCalEndTime;
     private String mDescription;
-    private String mCategory;
     private MenuItem mSaveAction;
     private long mTaskEntryId;
+    private int mSelectedCategoryId;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -98,6 +106,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             mCalEndTime.setTimeInMillis(endTimeMillis);
 
             mDescription = cursor.getString(COL_IDX_DESCRIPTION);
+            mSelectedCategoryId = identifySelectedCategory(cursor.getString(COL_IDX_CATEGORY));
         } else {
             /* User clicked an empty cell. We expect to get a start time argument  */
             long startTimeMillis = getArguments().getLong(ARG_START_TIME);
@@ -109,13 +118,21 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             mCalEndTime.add(Calendar.HOUR, 1);
         }
 
-        mCategory = "TODO: CRUD for task category";
-
         Activity activity = this.getActivity();
         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
         if (appBarLayout != null) {
             appBarLayout.setTitle(title);
         }
+    }
+
+    private int identifySelectedCategory(String category) {
+        int id = -1;
+        for (int i = 0; i < mCategories.length; i++) {
+            if (mCategories[i].equals(category)) {
+                id = i;
+            }
+        }
+        return id;
     }
 
     @Override
@@ -130,8 +147,11 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         mTextDescription = ((TextView) rootView.findViewById(R.id.description));
         mSpinCategory = (Spinner) rootView.findViewById(R.id.category);
 
-        ArrayAdapter<String> a = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, new String[]{"hello", "world"});
+        ArrayAdapter<String> a = new ArrayAdapter<String>(
+                getActivity(), android.R.layout.simple_spinner_item, mCategories);
         mSpinCategory.setAdapter(a);
+
+        mSpinCategory.setSelection(mSelectedCategoryId);
 
         mTextStartTime.setText(String.format("%1$tH:%1$tM", mCalStartTime));
         mTextEndTime.setText(String.format("%1$tH:%1$tM", mCalEndTime));
@@ -211,6 +231,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         cv.put(TaskEntry.COL_DATE_START, mCalStartTime.getTimeInMillis());
         cv.put(TaskEntry.COL_DATE_END, mCalEndTime.getTimeInMillis());
         cv.put(TaskEntry.COL_DESCRIPTION, mTextDescription.getText().toString());
+        cv.put(TaskEntry.COL_CATEGORY, mSpinCategory.getSelectedItem().toString());
         return cv;
     }
 }

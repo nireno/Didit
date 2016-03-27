@@ -13,6 +13,7 @@ public class Contract {
         public static final String COL_DATE_START = "start_date";
         public static final String COL_DATE_END = "end_date";
         public static final String COL_DESCRIPTION = "description";
+        public static final String COL_CATEGORY = "category";
 
         public static final String PATH = "task";
         public static final Uri BASE_URI = Contract.BASE_URI.buildUpon().appendPath("task").build();
