@@ -28,10 +28,11 @@ import java.util.List;
  */
 public class ItemListActivity extends AppCompatActivity {
 
-    private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END};
+    private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END, TaskEntry.COL_DESCRIPTION};
     private final int COL_IDX_ID = 0;
     private final int COL_IDX_DATE_START = 1;
     private final int COL_IDX_DATE_END = 2;
+    private final int COL_IDX_DESCRIPTION = 3;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -82,8 +83,8 @@ public class ItemListActivity extends AppCompatActivity {
                         eventStart.setTimeInMillis(cur.getLong(COL_IDX_DATE_START));
                         eventEnd.setTimeInMillis(cur.getLong(COL_IDX_DATE_END));
                         eventId = cur.getLong(COL_IDX_ID);
-                        String s = "the quick brown fox jumps over the lazy dog just to show off his genetic superiority";
-                        WeekViewEvent e = new WeekViewEvent(eventId, s, eventStart, eventEnd);
+                        String eventDescription = cur.getString(COL_IDX_DESCRIPTION);
+                        WeekViewEvent e = new WeekViewEvent(eventId, eventDescription, eventStart, eventEnd);
                         events.add(e);
                     }
                     cur.close();

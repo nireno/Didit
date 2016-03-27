@@ -13,7 +13,8 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String SQL_CREATE_TABLE_TASK = "CREATE TABLE " + Contract.TaskEntry.TABLE_NAME + "("
             + Contract.TaskEntry._ID + " integer primary key autoincrement, "
             + Contract.TaskEntry.COL_DATE_START + " integer not null, "
-            + Contract.TaskEntry.COL_DATE_END + " integer);";
+            + Contract.TaskEntry.COL_DATE_END + " integer, "
+            + Contract.TaskEntry.COL_DESCRIPTION + " text);";
 
     public DbHelper(Context context) {
         super(context, DB_NAME, null, VERSION);

@@ -93,6 +93,7 @@ public class Provider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        return db.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
     }
 }

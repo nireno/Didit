@@ -40,10 +40,16 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     public static final String ARG_ITEM_ID = "item_id";
     public static final String ARG_START_TIME = "start_time";
 
-    private final String[] PROJECTION = new String[]{TaskEntry._ID, TaskEntry.COL_DATE_START, TaskEntry.COL_DATE_END};
+    private final String[] PROJECTION = new String[]{
+            TaskEntry._ID,
+            TaskEntry.COL_DATE_START,
+            TaskEntry.COL_DATE_END,
+            TaskEntry.COL_DESCRIPTION
+    };
     private final int COL_IDX_ID = 0;
     private final int COL_IDX_DATE_START = 1;
     private final int COL_IDX_DATE_END = 2;
+    private final int COL_IDX_DESCRIPTION = 3;
 
     /**
      * The dummy content this fragment is presenting.
@@ -61,6 +67,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     private String mDescription;
     private String mCategory;
     private MenuItem mSaveAction;
+    private long mTaskEntryId;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -77,8 +84,8 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         String title = "Edit Task";
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             /* User clicked on an existing task. Get a cursor on that task id and load start/stop time etc. */
-            long id = getArguments().getLong(ARG_ITEM_ID);
-            Uri uri = TaskEntry.buildTaskByIdUri(id);
+            mTaskEntryId = getArguments().getLong(ARG_ITEM_ID);
+            Uri uri = TaskEntry.buildTaskByIdUri(mTaskEntryId);
             cursor = getContext().getContentResolver().query(uri, PROJECTION, null, null, null);
 
             cursor.moveToFirst();
@@ -90,6 +97,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             mCalEndTime = GregorianCalendar.getInstance();
             mCalEndTime.setTimeInMillis(endTimeMillis);
 
+            mDescription = cursor.getString(COL_IDX_DESCRIPTION);
         } else {
             /* User clicked an empty cell. We expect to get a start time argument  */
             long startTimeMillis = getArguments().getLong(ARG_START_TIME);
@@ -101,7 +109,6 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             mCalEndTime.add(Calendar.HOUR, 1);
         }
 
-        mDescription = "TODO: CRUD for Task description";
         mCategory = "TODO: CRUD for task category";
 
         Activity activity = this.getActivity();
@@ -185,10 +192,14 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mSaveAction == item) {
             /*Is it a new task or are we editing an existing one */
+            ContentValues cv = makeContentValues();
             if (cursor == null) {
                 /* then its a new task */
-                ContentValues cv = makeContentValues();
                 Uri uri = getActivity().getContentResolver().insert(TaskEntry.BASE_URI, cv);
+            } else {
+                String where = TaskEntry._ID + " = ?";
+                String[] whereArgs = new String[]{Long.toString(mTaskEntryId)};
+                getActivity().getContentResolver().update(TaskEntry.BASE_URI, cv, where, whereArgs);
             }
 
         }
@@ -199,6 +210,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         ContentValues cv = new ContentValues();
         cv.put(TaskEntry.COL_DATE_START, mCalStartTime.getTimeInMillis());
         cv.put(TaskEntry.COL_DATE_END, mCalEndTime.getTimeInMillis());
+        cv.put(TaskEntry.COL_DESCRIPTION, mTextDescription.getText().toString());
         return cv;
     }
 }
