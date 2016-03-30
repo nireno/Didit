@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -33,6 +34,7 @@ public class ItemListActivity extends AppCompatActivity {
     private final int COL_IDX_DATE_START = 1;
     private final int COL_IDX_DATE_END = 2;
     private final int COL_IDX_DESCRIPTION = 3;
+    private final String DETAIL_FRAG = "detail_fragment";
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -100,10 +102,10 @@ public class ItemListActivity extends AppCompatActivity {
                 if (mTwoPane) {
                     Bundle arguments = new Bundle();
                     arguments.putLong(ItemDetailFragment.ARG_ITEM_ID, event.getId());
-                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    Fragment fragment = new ItemDetailFragment();
                     fragment.setArguments(arguments);
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
+                            .replace(R.id.item_detail_container, fragment, DETAIL_FRAG)
                             .commit();
                 } else {
                     Intent intent = new Intent(mContext, ItemDetailActivity.class);
@@ -127,10 +129,10 @@ public class ItemListActivity extends AppCompatActivity {
                 if (mTwoPane) {
                     Bundle arguments = new Bundle();
                     arguments.putLong(ItemDetailFragment.ARG_START_TIME, time.getTimeInMillis());
-                    ItemDetailFragment fragment = new ItemDetailFragment();
+                    Fragment fragment = new ItemDetailFragment();
                     fragment.setArguments(arguments);
                     getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
+                            .replace(R.id.item_detail_container, fragment, DETAIL_FRAG)
                             .commit();
                 } else {
                     Intent intent = new Intent(mContext, ItemDetailActivity.class);
@@ -146,5 +148,24 @@ public class ItemListActivity extends AppCompatActivity {
         cal.add(GregorianCalendar.HOUR_OF_DAY, 1);
         cvs.put(TaskEntry.COL_DATE_END, cal.getTimeInMillis());
 //        getContentResolver().insert(Contract.TaskEntry.BASE_URI, cvs);
+    }
+
+    /* recreate() is called as a workaround to refresh android-week-view when in two-pane mode */
+    public void removeDetailFragment() {
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(DETAIL_FRAG);
+        getSupportFragmentManager().beginTransaction()
+                .remove(fragment).commit();
+        recreate();
+    }
+
+    public void selectItem(Long id) {
+        recreate();
+        Bundle arguments = new Bundle();
+        arguments.putLong(ItemDetailFragment.ARG_ITEM_ID, id);
+        Fragment fragment = new ItemDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.item_detail_container, fragment, DETAIL_FRAG)
+                .commit();
     }
 }

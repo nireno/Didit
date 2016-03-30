@@ -2,11 +2,13 @@ package com.example.niren.slice;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -138,6 +141,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        final AppCompatActivity activity = (AppCompatActivity) getActivity();
         View rootView = inflater.inflate(R.layout.item_detail, container, false);
 //        TextView tv = ((TextView) rootView.findViewById(R.id.item_detail));
         mTextStartTime = ((TextView) rootView.findViewById(R.id.start_time));
@@ -148,7 +152,8 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         mSpinCategory = (Spinner) rootView.findViewById(R.id.category);
 
         ArrayAdapter<String> a = new ArrayAdapter<String>(
-                getActivity(), android.R.layout.simple_spinner_item, mCategories);
+                activity, android.R.layout.simple_spinner_item, mCategories);
+        a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSpinCategory.setAdapter(a);
 
         mSpinCategory.setSelection(mSelectedCategoryId);
@@ -156,6 +161,28 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         mTextStartTime.setText(String.format("%1$tH:%1$tM", mCalStartTime));
         mTextEndTime.setText(String.format("%1$tH:%1$tM", mCalEndTime));
         mTextDescription.setText(mDescription);
+
+        Button btnDelete = (Button) rootView.findViewById(R.id.btn_delete);
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String filter = TaskEntry._ID + " = ?";
+                String[] filterArgs = new String[]{Long.toString(mTaskEntryId)};
+                activity.getContentResolver().delete(TaskEntry.BASE_URI, filter, filterArgs);
+                if (activity.getClass().equals(ItemListActivity.class)) {
+                    ItemListActivity itemListActivity = (ItemListActivity) activity;
+                    itemListActivity.removeDetailFragment();
+                } else {
+                    Intent intent = new Intent(activity, ItemListActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+                }
+            }
+        });
+        if (mTaskEntryId == 0) {
+            btnDelete.setVisibility(View.GONE);
+        }
+
 
         return rootView;
     }
@@ -216,12 +243,21 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
             if (cursor == null) {
                 /* then its a new task */
                 Uri uri = getActivity().getContentResolver().insert(TaskEntry.BASE_URI, cv);
-            } else {
+                mTaskEntryId = Long.parseLong(TaskEntry.getTaskIdFromUri(uri));
+            } else { /* its an existing task */
                 String where = TaskEntry._ID + " = ?";
                 String[] whereArgs = new String[]{Long.toString(mTaskEntryId)};
                 getActivity().getContentResolver().update(TaskEntry.BASE_URI, cv, where, whereArgs);
             }
-
+            final Activity activity = getActivity();
+            if (activity.getClass().equals(ItemListActivity.class)) {
+                ItemListActivity itemListActivity = (ItemListActivity) getActivity();
+                itemListActivity.selectItem(mTaskEntryId);
+            } else {
+                Intent intent = new Intent(activity, ItemListActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
         }
         return super.onOptionsItemSelected(item);
     }

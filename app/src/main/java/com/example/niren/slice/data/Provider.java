@@ -88,7 +88,8 @@ public class Provider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        return db.delete(TaskEntry.TABLE_NAME, selection, selectionArgs);
     }
 
     @Override
