@@ -1,4 +1,4 @@
-package com.example.niren.slice;
+package com.nirenorie.didit;
 
 import org.junit.Test;
 

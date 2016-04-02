@@ -1,11 +1,11 @@
-package com.example.niren.slice.data;
+package com.nirenorie.didit.data;
 
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
 public class Contract {
-    public static final String AUTHORITY = "com.example.niren.slice";
+    public static final String AUTHORITY = "com.nirenorie.didit";
     public static final Uri BASE_URI = Uri.parse("content://" + AUTHORITY);
 
     public static class TaskEntry implements BaseColumns {

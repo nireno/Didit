@@ -1,4 +1,4 @@
-package com.example.niren.slice.data;
+package com.nirenorie.didit.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

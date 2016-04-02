@@ -1,4 +1,4 @@
-package com.example.niren.slice;
+package com.nirenorie.didit;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -20,8 +20,8 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.niren.slice.data.Contract.TaskEntry;
-import com.example.niren.slice.dummy.DummyContent;
+import com.nirenorie.didit.data.Contract.TaskEntry;
+import com.nirenorie.didit.dummy.DummyContent;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 

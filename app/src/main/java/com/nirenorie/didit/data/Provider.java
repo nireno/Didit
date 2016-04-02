@@ -1,4 +1,4 @@
-package com.example.niren.slice.data;
+package com.nirenorie.didit.data;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
-import com.example.niren.slice.data.Contract.TaskEntry;
+import com.nirenorie.didit.data.Contract.TaskEntry;
 
 /**
  * Created by Ixanos on 10/03/2016.

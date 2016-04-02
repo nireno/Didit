@@ -1,4 +1,4 @@
-package com.example.niren.slice;
+package com.nirenorie.didit;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import android.support.v7.widget.Toolbar;
 import com.alamkanak.weekview.MonthLoader;
 import com.alamkanak.weekview.WeekView;
 import com.alamkanak.weekview.WeekViewEvent;
-import com.example.niren.slice.data.Contract.TaskEntry;
+import com.nirenorie.didit.data.Contract.TaskEntry;
 
 import java.util.ArrayList;
 import java.util.Calendar;

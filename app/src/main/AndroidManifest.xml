@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.niren.slice">
+    package="com.nirenorie.didit">
 
     <application
         android:allowBackup="true"
@@ -25,12 +25,12 @@
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.niren.slice.ItemListActivity" />
+                android:value="com.nirenorie.didit.ItemListActivity" />
         </activity>
 
         <provider
             android:name=".data.Provider"
-            android:authorities="com.example.niren.slice"
+            android:authorities="com.nirenorie.didit"
             android:exported="false"
             android:syncable="true" />
     </application>

@@ -1,4 +1,4 @@
-package com.example.niren.slice.dummy;
+package com.nirenorie.didit.dummy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
