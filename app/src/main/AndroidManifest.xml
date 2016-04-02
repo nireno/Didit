@@ -33,6 +33,10 @@
             android:authorities="com.nirenorie.didit"
             android:exported="false"
             android:syncable="true" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_api_key" />
     </application>
 
 </manifest>
