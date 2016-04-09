@@ -3,7 +3,9 @@ package com.nirenorie.didit;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -21,7 +23,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
@@ -31,10 +36,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private PendingIntent mGeofencePendingIntent;
+    private Circle mCircle;
+    private CircleOptions mCircleOptions = new CircleOptions()
+            .radius(100)
+            .strokeWidth(10)
+            .strokeColor(Color.BLACK)
+            .fillColor(Color.argb(50, 255, 0, 0));
+
+    private MarkerOptions mMarkerOptions = new MarkerOptions().title("Geofence Location").draggable(true);
+    private SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPrefs = getPreferences(MODE_PRIVATE);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -87,13 +102,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnMapClickListener(this);
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.getMaxZoomLevel() - 5));
 
-        // Add a marker in Sydney and move the camera
-        if (mLastLocation != null) {
-            LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(lastLatLng).title("Current Location"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
-        }
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                LatLng position = marker.getPosition();
+                moveCircle(position);
+                saveGeofencePosition(position);
+            }
+        });
     }
 
     @Override
@@ -109,12 +138,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ).setResultCallback(this);
         }
 
-        if (mMap != null) {
+        String lat = mPrefs.getString(getString(R.string.pref_geofence_lat), "");
+        String lon = mPrefs.getString(getString(R.string.pref_geofence_lon), "");
+
+        if(lat.equals("") || lon.equals("")){
             LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(lastLatLng).title("Current Location"));
+            saveGeofencePosition(lastLatLng);
+            mMarkerOptions.position(lastLatLng);
+            mMap.addMarker(mMarkerOptions);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
-            mMap.moveCamera(CameraUpdateFactory.zoomTo(mMap.getMaxZoomLevel() - 5));
+            moveCircle(lastLatLng);
+        } else {
+            LatLng latLng = loadGeofencePosition();
+            mMarkerOptions.position(latLng);
+            mMap.addMarker(mMarkerOptions);
+            moveCircle(latLng);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         }
+    }
+
+    private void saveGeofencePosition(LatLng pos){
+        mPrefs.edit().putString(getString(R.string.pref_geofence_lat), Double.toString(pos.latitude))
+                .putString(getString(R.string.pref_geofence_lon), Double.toString(pos.longitude))
+                .apply();
+    }
+
+    private LatLng loadGeofencePosition(){
+        String lat = mPrefs.getString(getString(R.string.pref_geofence_lat), "");
+        String lon = mPrefs.getString(getString(R.string.pref_geofence_lon), "");
+        return new LatLng(Double.parseDouble(lat), Double.parseDouble(lon));
+    }
+
+    private void moveCircle(LatLng pos){
+        if(mCircle != null){
+            mCircle.remove();
+        }
+        mCircleOptions.center(pos);
+        mCircle = mMap.addCircle(mCircleOptions);
     }
 
     @Override
