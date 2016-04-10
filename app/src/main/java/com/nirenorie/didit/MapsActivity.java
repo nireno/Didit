@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
@@ -132,13 +133,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String lat = mPrefs.getString(Constants.PREF_GEOFENCE_LAT, "");
         String lon = mPrefs.getString(Constants.PREF_GEOFENCE_LON, "");
 
-        if(lat.equals("") || lon.equals("")){
-            LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            saveGeofencePosition(lastLatLng);
-            mMarkerOptions.position(lastLatLng);
-            mMap.addMarker(mMarkerOptions);
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
-            moveGeofence(lastLatLng);
+        if (lat.equals("") || lon.equals("")) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                saveGeofencePosition(lastLatLng);
+                mMarkerOptions.position(lastLatLng);
+                mMap.addMarker(mMarkerOptions);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
+                moveGeofence(lastLatLng);
+            }
         } else {
             LatLng latLng = loadGeofencePosition();
             mMarkerOptions.position(latLng);
@@ -148,27 +153,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void saveGeofencePosition(LatLng pos){
+    private void saveGeofencePosition(LatLng pos) {
         mPrefs.edit().putString(Constants.PREF_GEOFENCE_LAT, Double.toString(pos.latitude))
                 .putString(Constants.PREF_GEOFENCE_LON, Double.toString(pos.longitude))
                 .apply();
     }
 
-    private LatLng loadGeofencePosition(){
+    private LatLng loadGeofencePosition() {
         String lat = mPrefs.getString(Constants.PREF_GEOFENCE_LAT, "");
         String lon = mPrefs.getString(Constants.PREF_GEOFENCE_LON, "");
         return new LatLng(Double.parseDouble(lat), Double.parseDouble(lon));
     }
 
-    private void moveCircle(LatLng pos){
-        if(mCircle != null){
+    private void moveCircle(LatLng pos) {
+        if (mCircle != null) {
             mCircle.remove();
         }
         mCircleOptions.center(pos);
         mCircle = mMap.addCircle(mCircleOptions);
     }
 
-    private void moveCircle(Double lat, Double lon){
+    private void moveCircle(Double lat, Double lon) {
         moveCircle(new LatLng(lat, lon));
     }
 
@@ -194,53 +199,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStop();
     }
 
-    private void moveGeofence(double lat, double lon){
+    private void moveGeofence(double lat, double lon) {
         List<String> ids = new ArrayList<String>();
         ids.add(Constants.GEOFENCE_REQUEST_ID);
 
         LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, ids)
-            .setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(Status status) {
-                    switch (status.getStatusCode()) {
-                        case GeofenceStatusCodes.SUCCESS:
-                            Toast.makeText(MapsActivity.this,
-                                    "Geofence Removed", Toast.LENGTH_SHORT).show();
-                            break;
-                        default:
-                            Toast.makeText(MapsActivity.this
-                                    , "Could not remove geofence"
-                                    , Toast.LENGTH_SHORT).show();
-                            break;
+                .setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        switch (status.getStatusCode()) {
+                            case GeofenceStatusCodes.SUCCESS:
+                                Toast.makeText(MapsActivity.this,
+                                        "Geofence Removed", Toast.LENGTH_SHORT).show();
+                                break;
+                            default:
+                                Toast.makeText(MapsActivity.this
+                                        , "Could not remove geofence"
+                                        , Toast.LENGTH_SHORT).show();
+                                break;
+                        }
                     }
-                }
-            });
+                });
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    getGeofencingRequest(lat, lon),
-                    getGeofencePendingIntent()
-            ).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(Status status) {
-                    switch (status.getStatusCode()) {
-                        case GeofenceStatusCodes.SUCCESS:
-                            Toast.makeText(MapsActivity.this,
-                                    "Geofence Added", Toast.LENGTH_SHORT).show();
-                            break;
-                        default:
-                            Toast.makeText(MapsActivity.this
-                                    , "Could not add geofence"
-                                    , Toast.LENGTH_SHORT).show();
-                            break;
-                    }
-                }
-            });
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        LocationServices.GeofencingApi.addGeofences(
+                mGoogleApiClient,
+                getGeofencingRequest(lat, lon),
+                getGeofencePendingIntent()
+        ).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+                switch (status.getStatusCode()) {
+                    case GeofenceStatusCodes.SUCCESS:
+                        Toast.makeText(MapsActivity.this,
+                                "Geofence Added", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(MapsActivity.this
+                                , "Could not add geofence"
+                                , Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        });
 
         moveCircle(lat, lon);
     }
