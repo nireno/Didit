@@ -1,7 +1,10 @@
 package com.nirenorie.didit;
 
 import android.app.Activity;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,6 +25,7 @@ import android.widget.TextView;
 
 import com.nirenorie.didit.data.Contract.TaskEntry;
 import com.nirenorie.didit.dummy.DummyContent;
+import com.nirenorie.didit.widget.TaskWidgetProvider;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -249,6 +253,7 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
                 String[] whereArgs = new String[]{Long.toString(mTaskEntryId)};
                 getActivity().getContentResolver().update(TaskEntry.BASE_URI, cv, where, whereArgs);
             }
+            updateWidget();
             final Activity activity = getActivity();
             if (activity.getClass().equals(ItemListActivity.class)) {
                 ItemListActivity itemListActivity = (ItemListActivity) getActivity();
@@ -269,5 +274,14 @@ public class ItemDetailFragment extends Fragment implements View.OnClickListener
         cv.put(TaskEntry.COL_DESCRIPTION, mTextDescription.getText().toString());
         cv.put(TaskEntry.COL_CATEGORY, mSpinCategory.getSelectedItem().toString());
         return cv;
+    }
+
+    private void updateWidget(){
+        Context ctx = getActivity();
+        Intent intent = new Intent(ctx, TaskWidgetProvider.class);
+        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        int[] ids = AppWidgetManager.getInstance(ctx).getAppWidgetIds(new ComponentName(ctx, TaskWidgetProvider.class));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+        ctx.sendBroadcast(intent);
     }
 }

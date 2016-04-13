@@ -42,6 +42,10 @@
             android:name=".GeofenceTransitionsIntentService"
             android:exported="false" />
 
+        <service
+            android:name=".widget.TaskWidgetIntentService"
+            android:exported="false" />
+
         <provider
             android:name=".data.Provider"
             android:authorities="com.nirenorie.didit"
@@ -51,6 +55,19 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />
+
+        <!-- Current Task Widget -->
+        <receiver
+            android:name=".widget.TaskWidgetProvider"
+            android:label="@string/title_widget_task" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.android.sunshine.app.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/task_widget" />
+        </receiver>
+
     </application>
 
 </manifest>
