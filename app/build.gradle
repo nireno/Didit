@@ -13,10 +13,10 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("~/keystore.jks")
-            storePassword System.getenv("KSTOREPWD")
+            storeFile file("keystore.jks")
+            storePassword "bf0KCHhQGgWPYPpzjDlF"
             keyAlias "didit"
-            keyPassword System.getenv("DIDITKEYPWD")
+            keyPassword "RIdc8V3ZGvh8cKVomgVA"
         }
     }
     buildTypes {
